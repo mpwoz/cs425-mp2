@@ -1,6 +1,8 @@
 package main
 
 import (
+  "flag"
+  "log"
 )
 
 // Maintain dictionary of machines
@@ -8,6 +10,13 @@ import (
 // If the number of heartbeats crosses a threshold, we know it is unresponsive
 
 func main() {
+
+  // Get command-line arguments for setting up group options
+  var address = flag.String("a", "",
+    "Address of a machine in the group to join. Blank if this is a new group.")
+  flag.Parse()
+  log.Println(*address)
+
   // Generate an ID to join the group with
   // Join the group, receive current group list
 
