@@ -3,6 +3,7 @@ package main
 import (
   "flag"
   "log"
+  "./udp"
 )
 
 // Maintain dictionary of machines
@@ -17,11 +18,26 @@ func main() {
   flag.Parse()
   log.Println(*address)
 
-  // Generate an ID to join the group with
-  // Join the group, receive current group list
+
+  daemon, err := udp.NewDaemon("localhost:4567")
+  if err != nil {
+    log.Panic("Daemon creation", err)
+  }
+
+  log.Println(daemon)
+
+  /* 
+    use this to test udp:
+    echo -n "hello" >/dev/udp/localhost/4567
+  */
+  daemon.ReceiveDatagrams()
+
+
+  // Generate an ID to join the group with (may not be possible)
+  // Join the group, receive current group list (with self included)
 
   // LOOP for every heartbeat:
-    // Choose a random machine to gossip to
+    // Choose a random machine from list to gossip to
     // Broadcast current group state to chosen machine
     // Increment heartbeat counters for all machines (zero own counter)
 }
