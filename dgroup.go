@@ -32,7 +32,13 @@ func main() {
   if err != nil {
     log.Panic("Daemon creation", err)
   }
-  daemon.ReceiveDatagrams()
+  if groupMember != "" {
+    daemon.Gossip("hello, from daemon", groupMember)
+  }
+  //daemon.ReceiveDatagrams()
+  for {
+  }
+  log.Println("Done")
 
 
   // Generate an ID to join the group with (may not be possible)
