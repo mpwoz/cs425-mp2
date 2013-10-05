@@ -13,21 +13,17 @@ import (
 func main() {
 
   // Get command-line arguments for setting up group options
-  var address = flag.String("a", "",
-    "Address of a machine in the group to join. Blank if this is a new group.")
+  var address = flag.String("a", "", "Address of a machine in the group to join. Blank for new group")
   flag.Parse()
-  log.Println(*address)
-
+  log.Println("Start server on:", *address)
 
   daemon, err := udp.NewDaemon("localhost:4567")
   if err != nil {
     log.Panic("Daemon creation", err)
   }
 
-  log.Println(daemon)
-
   /* 
-    use this to test udp:
+    use this to test (from command line for now):
     echo -n "hello" >/dev/udp/localhost/4567
   */
   daemon.ReceiveDatagrams()
