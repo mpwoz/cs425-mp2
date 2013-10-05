@@ -35,10 +35,8 @@ func main() {
   if groupMember != "" {
     daemon.Gossip("hello, from daemon", groupMember)
   }
-  //daemon.ReceiveDatagrams()
-  for {
-  }
-  log.Println("Done")
+  daemon.ReceiveDatagrams()
+  log.Println("Done. (shouldn't be here)")
 
 
   // Generate an ID to join the group with (may not be possible)
