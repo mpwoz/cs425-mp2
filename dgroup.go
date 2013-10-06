@@ -6,8 +6,26 @@ import (
   "flag"
   "log"
   "time"
+  "math/rand"
 )
 
+//Get random member & Increment HeartBeat
+func getRandomMemberAndIncrementAll(groupList map[string]data.GroupMember)(data.GroupMember){
+    randomMemberIndex := rand.Int() % len(groupList)
+    index := 0
+    var randomMember data.GroupMember
+    for _, currMember := range groupList {
+    
+      if(randomMemberIndex == index){
+            randomMember = currMember
+        }
+      currMember.IncrementHeartBeat()
+      index++
+      
+    }
+    return randomMember
+
+}
 // Maintain dictionary of machines
 // Each entry counts number of "heartbeats" since we heard from that machine
 // If the number of heartbeats crosses a threshold, we know it is unresponsive
@@ -51,23 +69,24 @@ func main() {
 
   // LOOP for every heartbeat:
   //Should probably do this asynchronously - Duration set ticker
+  
   ticker := time.Tick(time.Duration(duration) * time.Second)
+  
+//TODO: Figure out how to move list to Daemon and use the ticker and listen to UDP in parallel
   for now := range ticker {
+  
+    //Get random member , increment current members
+    randomMember := getRandomMemberAndIncrementAll(groupList)
     log.Println("TICK",now)
-    index := 0
-    // TODO this isn't actually random
-    //Store the first groupMemberKey which will be random
-    for _, currMember := range groupList {
-      currMember.IncrementHeartBeat()
-      index++
-    }
-
-    //Gossip the current list to random member TODO
-    //daemon.Gossip(groupList,groupList[groupMemberKey].Address)
+    
+    //TODO Send Marshalled data
+    udp.SendMessage("DATA TODO",randomMember.Address)
 
   }
 
   // Broadcast current group state to chosen machine
   // Increment heartbeat counters for all machines (zero own counter)
 }
+
+
 
