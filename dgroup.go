@@ -36,6 +36,7 @@ func main() {
 
   //Maintain a dictionary of machines
   var groupList map[string]data.GroupMember
+  groupList = make(map[string]data.GroupMember)
 
   // Determine the heartbeat duration time
   duration := 5
@@ -44,8 +45,9 @@ func main() {
   // TODO, incorporate a timestamp into the key
   //key := localhost + UTC()
   key := localhost
-
+    
   newGroupMember := data.NewGroupMember(key, localhost, 0)
+  groupList[localhost] = *newGroupMember
 
   /* 
     use this to test (from command line for now):
@@ -58,7 +60,8 @@ func main() {
    //Add current machine to the list - Index by 'Address + Current Time' - will be unique even aftr machine leaves - Set heartbeat to 0
   if groupMember != "" {
     //Send the groupMember this machines list
-    daemon.Gossip(newGroupMember, groupMember)
+    //daemon.Gossip(newGroupMember, groupMember)
+    daemon.Gossip("Need to send new groupmember" , groupMember)
     log.Println("GOSSIP","Gossiping new member to the group")
   }
   // Blocks on this loop TODO
@@ -68,34 +71,39 @@ func main() {
   // Join the group, receive current group list (with self included) - - Not sure where you receive this ? Receive Datagrams - Where is that stored
 
   //Assuming this is the recieved grouplist
-  var receivedGroupList map[string]data.GroupMember
+  //var receivedGroupList map[string]data.GroupMember
 
   // LOOP for every heartbeat:
   //Should probably do this asynchronously - Duration set ticker
-  ticker := time.Tick(duration * time.Second)
+  ticker := time.Tick(time.Duration(duration) * time.Second)
   for now := range ticker {
     // golang language spec explicitly defines maps as having undefined ordering of keys. 
     // Furthermore, since Go 1, key order is intentionally randomized between runs to 
     // prevent dependency on any perceived order. i.e Take the first one O(1)
     // martin: Have you tested this? If it's the case that's awesome but we should 
       // verify it's a random value each time
-
-    var gossipMemberKey string
+    log.Println("TICK",now)
+    var gossipMember data.GroupMember
     index := 0
     //Store the first groupMemberKey which will be random
-    for groupMemberKey, currMember := range groupList {
+    for _, currMember := range groupList {
       if index == 0 {
-        gossipMemberKey = groupMemberKey
+        gossipMember = currMember
       }
       currMember.IncrementHeartBeat()
       index++
     }
 
-    //Set current heartbeat to 0 - Do it after iteration to ensure self goes to 0
-    groupList[localhost].SetHeartBeat(0)
-
+    //Set current heartbeat to 0 - Do it after iteration to ensure self goes to 0 - Syntax issues modifying map directly
+    currMember := groupList[localhost]
+    currMember.SetHeartBeat(0)
+    
+    groupList[localhost] = currMember
+    
     //Gossip the current list to random member
-    daemon.Gossip(groupList,groupList[groupMemberKey].address)
+    //daemon.Gossip(groupList,groupList[groupMemberKey].Address)
+
+    daemon.Gossip("Need to send GroupList",gossipMember.Address)
   }
 
   // Broadcast current group state to chosen machine
