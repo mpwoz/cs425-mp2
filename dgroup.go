@@ -1,14 +1,14 @@
 package main
 
 import (
-  "flag"
-  "log"
-  "time"
-  "./udp"
   "./data"
-  "os"
-  "net"
+  "./udp"
+  "flag"
   "fmt"
+  "log"
+  "net"
+  "os"
+  "time"
 )
 
 // Maintain dictionary of machines
@@ -23,21 +23,21 @@ func main() {
     groupMember   string
   )
 
-    name, err := os.Hostname()
-    if err != nil {
-        fmt.Printf("Oops: %v\n", err)
-    return
-    }
+  name, err := os.Hostname()
+  if err != nil {
+      fmt.Printf("Oops: %v\n", err)
+  return
+  }
 
-    //Gets an array of ip and mac address
-    address, err := net.LookupHost(name)
-    if err != nil {
-        fmt.Printf("Oops: %v\n", err)
-    return
-    }
+  //Gets an array of ip and mac address
+  address, err := net.LookupHost(name)
+  if err != nil {
+      fmt.Printf("Oops: %v\n", err)
+  return
+  }
 
-    //localhost is the ip address
-    localhost := address[0]
+  //localhost is the ip address
+  localhost := address[0]
 
   // TODO un-hardcode the port
   flag.StringVar(&udpHost, "udphost", localhost+":4567", "host:port to bind for UDP listener")
