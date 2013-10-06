@@ -54,9 +54,10 @@ func main() {
   duration := 5
 
   //Unique Id
-  // TODO, incorporate a timestamp into the key
-  //key := localhost + UTC()
-  key := localhost
+  //Incorporated a UTC timestamp into the key
+  Time := time.Now().UTC()
+  fmt.Println(Time)
+  key := localhost + Time.String()
     
   newGroupMember := data.NewGroupMember(key, localhost, 0)
   groupList[localhost] = *newGroupMember
@@ -73,6 +74,7 @@ func main() {
   if groupMember != "" {
     //Send the groupMember this machines list
     //daemon.Gossip(newGroupMember, groupMember)
+    
     daemon.Gossip("Need to send new groupmember" , groupMember)
     log.Println("GOSSIP","Gossiping new member to the group")
   }
@@ -108,8 +110,7 @@ func main() {
 
     //Set current heartbeat to 0 - Do it after iteration to ensure self goes to 0 - Syntax issues modifying map directly
     currMember := groupList[localhost]
-    currMember.SetHeartBeat(0)
-    
+    currMember.SetHeartBeat(0)    
     groupList[localhost] = currMember
     
     //Gossip the current list to random member
