@@ -96,6 +96,7 @@ func main() {
     log.Println("TICK",now)
     var gossipMember data.GroupMember
     index := 0
+    // TODO this isn't actually random
     //Store the first groupMemberKey which will be random
     for _, currMember := range groupList {
       if index == 0 {
