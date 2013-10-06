@@ -39,7 +39,6 @@ func main() {
   //localhost is the ip address
   localhost := address[0]
 
-  // TODO un-hardcode the port
   flag.StringVar(&udpHost, "udphost", localhost+":4567", "host:port to bind for UDP listener")
   flag.StringVar(&groupMember, "g", "", "address of an existing group member")
   flag.Parse()
