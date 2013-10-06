@@ -5,9 +5,8 @@ import (
   "log"
   "time"
   "./udp"
-  "./data/GroupMember"
+  "./data"
   "os"
-  "math/rand"
 )
 
 // Maintain dictionary of machines
@@ -25,7 +24,7 @@ func main() {
   //Use the actual hostname instead of localhost - ensure uniqueness when transmitting groupmemberdata
   localhost, err := os.Hostname()
   if err != nil {
-    fmt.Printf("Discovering hostname: %v\n", err)
+    log.Printf("Discovering hostname: %v\n", err)
     return
   }
   // TODO un-hardcode the port
@@ -36,15 +35,17 @@ func main() {
   log.Println("Start server on:", udpHost)
 
   //Maintain a dictionary of machines
-  var groupList map[string]GroupMember
+  var groupList map[string]data.GroupMember
 
   // Determine the heartbeat duration time
   duration := 5
 
   //Unique Id
-  key := localhost + UTC()
+  // TODO, incorporate a timestamp into the key
+  //key := localhost + UTC()
+  key := localhost
 
-  newGroupMember := NewGroupMember(key,localhost,0)
+  newGroupMember := data.NewGroupMember(key, localhost, 0)
 
   /* 
     use this to test (from command line for now):
@@ -67,7 +68,7 @@ func main() {
   // Join the group, receive current group list (with self included) - - Not sure where you receive this ? Receive Datagrams - Where is that stored
 
   //Assuming this is the recieved grouplist
-  var receivedGroupList map[string]GroupMember
+  var receivedGroupList map[string]data.GroupMember
 
   // LOOP for every heartbeat:
   //Should probably do this asynchronously - Duration set ticker
@@ -82,11 +83,11 @@ func main() {
     var gossipMemberKey string
     index := 0
     //Store the first groupMemberKey which will be random
-    for groupMemberKey, value := range groupList {
+    for groupMemberKey, currMember := range groupList {
       if index == 0 {
         gossipMemberKey = groupMemberKey
       }
-      value.IncrementHeartBeat
+      currMember.IncrementHeartBeat()
       index++
     }
 
