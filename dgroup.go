@@ -7,6 +7,8 @@ import (
   "./udp"
   "./data"
   "os"
+  "net"
+  "fmt"
 )
 
 // Maintain dictionary of machines
@@ -21,12 +23,22 @@ func main() {
     groupMember   string
   )
 
-  //Use the actual hostname instead of localhost - ensure uniqueness when transmitting groupmemberdata
-  localhost, err := os.Hostname()
-  if err != nil {
-    log.Printf("Discovering hostname: %v\n", err)
+    name, err := os.Hostname()
+    if err != nil {
+        fmt.Printf("Oops: %v\n", err)
     return
-  }
+    }
+
+    //Gets an array of ip and mac address
+    address, err := net.LookupHost(name)
+    if err != nil {
+        fmt.Printf("Oops: %v\n", err)
+    return
+    }
+
+    //localhost is the ip address
+    localhost := address[0]
+
   // TODO un-hardcode the port
   flag.StringVar(&udpHost, "udphost", localhost+":4567", "host:port to bind for UDP listener")
   flag.StringVar(&groupMember, "g", "", "address of an existing group member")
