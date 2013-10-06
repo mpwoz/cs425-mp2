@@ -6,8 +6,11 @@ package udp
 */
 
 import (
-  "net"
+  "../data"
   "log"
+  "net"
+  "strconv"
+  "time"
 )
 
 type Daemon struct {
@@ -32,19 +35,35 @@ func NewDaemon(hostPort string) (daemon *Daemon, err error) {
 func (self *Daemon) ReceiveDatagrams() {
   for {
     buffer := make([]byte, 1024)
-
-    // Fancy error checking one-liner
-    if c, addr, err := self.Conn.ReadFromUDP(buffer); err != nil {
+    c, addr, err := self.Conn.ReadFromUDP(buffer)
+    if err != nil {
       log.Printf("%d byte datagram from %s with error %s\n", c, addr.String(), err.Error())
       return
-    } else {
-      log.Println("Data received: ", string(buffer[:c]))
     }
+
+    message := string(buffer[:c])
+
+    // Instantiate the new member trying to join the group
+    if message == "JOIN" {
+      senderAddr := net.JoinHostPort(addr.IP.String(), strconv.Itoa(addr.Port))
+      log.Printf("Data received from %s: %s", senderAddr, message)
+      self.addNewMember(senderAddr)
+    }
+
   }
 }
 
-// Send message to address
-func (self *Daemon) Gossip(message, address string) (err error){
+func (self *Daemon) addNewMember(address string) (newMember *data.GroupMember){
+  now := time.Now().UTC()
+  machineId := address + "###" + now.String()
+  newMember = data.NewGroupMember(machineId, address, 0)
+  log.Printf("Created new member with ID: %s", machineId)
+  // TODO add to the list of members
+  return
+}
+
+
+func SendMessage(message, address string) (err error) {
   var udpaddr *net.UDPAddr
   if udpaddr, err = net.ResolveUDPAddr("udp4", address); err != nil {
     return
