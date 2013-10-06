@@ -46,9 +46,7 @@ func main() {
 
   log.Println("Start server on:", udpHost)
 
-  //Maintain a dictionary of machines
-  var groupList map[string]data.GroupMember
-  groupList = make(map[string]data.GroupMember)
+  groupList := make(map[string]data.GroupMember)
 
   // Determine the heartbeat duration time
   duration := 5
@@ -74,10 +72,12 @@ func main() {
   if groupMember != "" {
     //Send the groupMember this machines list
     //daemon.Gossip(newGroupMember, groupMember)
-    
-    daemon.Gossip("Need to send new groupmember" , groupMember)
+
+    // TODO
+    daemon.Gossip("Need to send new groupmember", groupMember)
     log.Println("GOSSIP","Gossiping new member to the group")
   }
+  
   // Blocks on this loop TODO
   daemon.ReceiveDatagrams()
 
@@ -99,6 +99,7 @@ func main() {
     log.Println("TICK",now)
     var gossipMember data.GroupMember
     index := 0
+    // TODO this isn't actually random
     //Store the first groupMemberKey which will be random
     for _, currMember := range groupList {
       if index == 0 {
@@ -110,13 +111,14 @@ func main() {
 
     //Set current heartbeat to 0 - Do it after iteration to ensure self goes to 0 - Syntax issues modifying map directly
     currMember := groupList[localhost]
-    currMember.SetHeartBeat(0)    
+    currMember.SetHeartBeat(0)
     groupList[localhost] = currMember
-    
+
     //Gossip the current list to random member
     //daemon.Gossip(groupList,groupList[groupMemberKey].Address)
 
-    daemon.Gossip("Need to send GroupList",gossipMember.Address)
+    // TODO
+    daemon.Gossip("Need to send GroupList", gossipMember.Address)
   }
 
   // Broadcast current group state to chosen machine
