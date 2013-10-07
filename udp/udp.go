@@ -12,6 +12,7 @@ import (
   "net"
   "strings"
   "time"
+  "../logger"
 )
 const (
   heartbeatThreshold = 50
@@ -27,6 +28,7 @@ type Daemon struct {
 func NewDaemon(port string) (daemon *Daemon, err error) {
   hostPort := net.JoinHostPort("localhost", port)
   log.Printf("Creating daemon at %s\n", hostPort)
+  logger.Log("INFO","Creating daemon at" + hostPort)
   conn, err := createUDPListener(hostPort)
 
   if err != nil {
@@ -40,6 +42,7 @@ func NewDaemon(port string) (daemon *Daemon, err error) {
   }
 
   log.Println("Daemon created!")
+  logger.Log("INFO","Daemon Created")
   return
 }
 
@@ -49,6 +52,7 @@ func (self *Daemon) ReceiveDatagrams(joinGroupOnConnection bool) {
     c, addr, err := self.Conn.ReadFromUDP(buffer)
     if err != nil {
       log.Printf("%d byte datagram from %s with error %s\n", c, addr.String(), err.Error())
+      logger.Log("ERROR" ,addr.String() + "byte datagram from %s with error " + err.Error())
       return
     }
 
@@ -57,6 +61,7 @@ func (self *Daemon) ReceiveDatagrams(joinGroupOnConnection bool) {
     senderAddr := net.JoinHostPort(addr.IP.String(), port)
 
     //log.Printf("Data received from %s: %s", senderAddr, msg)
+    logger.Log("INFO","Data received from " + senderAddr + " : " + msg)
 
     self.handleMessage(msg, senderAddr, &joinGroupOnConnection)
   }
@@ -67,12 +72,14 @@ func (self *Daemon) handleMessage(msg, sender string, joinSenderGroup *bool) {
   fields := strings.SplitN(msg, "|%|", 2)
   switch fields[0] {
     case "JOIN":
+    logger.Log("JOIN","Member just joined" + sender + msg)
       self.addNewMember(sender)
       if *joinSenderGroup {
         *joinSenderGroup = false
         self.JoinGroup(sender)
       }
     case "GOSSIP":
+      logger.Log("GOSSIP","Gossiping " + sender + fields[1])  
       self.handleGossip(sender, fields[1])
   }
 }
@@ -85,6 +92,7 @@ func (self *Daemon) handleGossip(senderAddr, subject string) {
       //log.Printf("Reset %s, %s\n", id, senderAddr)
       member.SetHeartBeat(0)
     }
+    logger.Log("GOSSIP","Reset counter for " + senderAddr) 
   }
 
   // Update the counter for the subject
@@ -109,6 +117,7 @@ func (self *Daemon) addNewMember(address string) (newMember *data.GroupMember){
   machineId := address + "###" + now.String()
   newMember = data.NewGroupMember(machineId, address, 0)
   log.Printf("Created new member with IP: %s", address)
+  logger.Log("INFO","Created new member with IP " + address)
   self.MemberList[machineId] = newMember
   return
 }
@@ -176,8 +185,10 @@ func sendMessage(message, address string) (err error) {
   var con *net.UDPConn
   con, err = net.DialUDP("udp", nil, raddr)
   //log.Printf("Sending '%s' to %s..", message, raddr)
+  logger.Log("INFO","Sending "+message)
   if _, err = con.Write([]byte(message)); err != nil {
     log.Panic("Writing to UDP:", err)
+    logger.Log("ERROR","Writing to UDP")
   }
 
   return

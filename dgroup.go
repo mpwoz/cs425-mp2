@@ -5,6 +5,7 @@ import (
   "flag"
   "log"
   "time"
+  "./logger"
 
 )
 
@@ -26,6 +27,7 @@ func main() {
   flag.Parse()
 
   log.Println("Start server on port", listenPort)
+  logger.Log("INFO","Start Server on Port" + listenPort)
 
   // Determine the heartbeat duration time
   heartbeatInterval := 50 * time.Millisecond
@@ -44,7 +46,7 @@ func main() {
   firstInGroup := groupMember == ""
   if !firstInGroup {
     daemon.JoinGroup(groupMember)
-    log.Println("JOIN","Gossiping new member to the group") // TODO use mp1 logger
+    logger.Log("JOIN","Gossiping new member to the group") 
   }
 
   go daemon.ReceiveDatagrams(firstInGroup)

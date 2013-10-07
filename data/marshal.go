@@ -4,7 +4,7 @@ import (
   "bytes"
   "encoding/binary"
   "fmt"
-  //"log"
+  "../logger"
   "strings"
   "strconv"
 )
@@ -32,6 +32,7 @@ func Marshal(member *GroupMember) (serialized string) {
 	if err != nil {
 		fmt.Println("binary.Write failed:", err)
 	}
+    logger.Log("MARSHAL",fmt.Sprintf("<%s, %d> ---> %s", member.Id, member.Heartbeat, serialized))
   //log.Printf("<%s, %d> ---> %s", member.Id, member.Heartbeat, serialized)
   return string(buf.Bytes())
 }
