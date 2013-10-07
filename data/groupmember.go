@@ -1,9 +1,9 @@
 package data
 
-import (
+/*import (
   "log"
   "fmt"
-)
+)*/
 
 /*
   Represents the status of a single machine in the group
@@ -24,12 +24,12 @@ func NewGroupMember(machineId, address string, heartBeat int) (member *GroupMemb
 }
 
 func (self *GroupMember) IncrementHeartBeat() {
-  log.Println("INFO", fmt.Sprintf("Heartbeat of %s: %d", self.Address, self.Heartbeat))
+  //log.Println("INFO", fmt.Sprintf("Heartbeat of %s: %d", self.Address, self.Heartbeat))
   self.Heartbeat++
 }
 
 func (self *GroupMember) SetHeartBeat(heartbeat int) {
-  log.Println("INFO",fmt.Sprintf("Heartbeat of %s: %d --> %d", self.Address, self.Heartbeat, heartbeat))
+  //log.Println("INFO",fmt.Sprintf("Heartbeat of %s: %d --> %d", self.Address, self.Heartbeat, heartbeat))
   self.Heartbeat = heartbeat
 }
 

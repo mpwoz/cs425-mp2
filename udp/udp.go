@@ -13,6 +13,10 @@ import (
   "strings"
   "time"
 )
+const (
+  heartbeatThreshold = 50
+)
+
 
 type Daemon struct {
   Conn *net.UDPConn
@@ -132,28 +136,20 @@ func (self *Daemon) HeartbeatAndGossip() {
     return
   }
 
-  // There is only one other machine, send them a dummy message
-  if len(self.MemberList) == 1 {
-    log.Println("Only one other machine!")
-    // is this the only way to get the first element of a map?
-    for _, receiver := range self.MemberList {
-      receiver.IncrementHeartBeat()
-      self.Gossip(nil, receiver)
-    }
-    return
-  }
-
   receiverIndex := rand.Int() % len(self.MemberList)
   var receiver *data.GroupMember
   i := 0
   for _, currMember := range self.MemberList {
     if receiverIndex == i { receiver = currMember }
     currMember.IncrementHeartBeat()
+    if currMember.Heartbeat > heartbeatThreshold {
+      log.Println("MACHINE DEAD!", currMember.Id)
+    }
     i++
   }
   for _, subject := range self.MemberList {
     if subject.Id == receiver.Id {
-      continue
+      self.Gossip(nil, receiver)
     }
     self.Gossip(subject, receiver)
   }

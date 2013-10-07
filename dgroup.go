@@ -27,7 +27,7 @@ func main() {
   log.Println("Start server on port", listenPort)
 
   // Determine the heartbeat duration time
-  heartbeatInterval := 1000 * time.Millisecond
+  heartbeatInterval := 50 * time.Millisecond
 
   /* 
     use this to test (from command line for now):
