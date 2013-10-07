@@ -55,6 +55,9 @@ func main() {
   
   for {
     //Get random member , increment current members
+    if (daemon.Active == false) {
+        break;
+    }
     daemon.HeartbeatAndGossip()
     time.Sleep(heartbeatInterval)
   }
