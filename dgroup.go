@@ -7,17 +7,20 @@ import (
   "log"
   "time"
   "math/rand"
+  "fmt"
 )
 
 //Get random member & Increment HeartBeat
 func getRandomMemberAndIncrementAll(groupList map[string]data.GroupMember)(data.GroupMember){
     randomMemberIndex := rand.Int() % len(groupList)
+    fmt.Println(randomMemberIndex)
     index := 0
     var randomMember data.GroupMember
     for _, currMember := range groupList {
     
       if(randomMemberIndex == index){
             randomMember = currMember
+            fmt.Println("Random Member Found")
         }
       currMember.IncrementHeartBeat()
       index++
@@ -45,7 +48,10 @@ func main() {
   log.Println("Start server on:", udpHost)
 
   groupList := make(map[string]data.GroupMember)
-
+  
+  newMember := data.NewGroupMember("KEY", "VALUE", 3);
+  groupList["KEY"] = *newMember
+  
   // Determine the heartbeat duration time
   duration := 5
 
@@ -63,9 +69,7 @@ func main() {
     udp.SendMessage("JOIN", groupMember)
     log.Println("GOSSIP","Gossiping new member to the group") // TODO use mp1 logger
   }
-
-  // Blocks on this loop TODO
-  daemon.ReceiveDatagrams()
+    
 
   // LOOP for every heartbeat:
   //Should probably do this asynchronously - Duration set ticker
@@ -79,11 +83,19 @@ func main() {
     randomMember := getRandomMemberAndIncrementAll(groupList)
     log.Println("TICK",now)
     
+    sendingData := data.Marshal(&randomMember)
+    fmt.Println(sendingData)
+    checkMember := data.UnMarshal(sendingData)
+    
+    fmt.Println(checkMember)
     //TODO Send Marshalled data
-    udp.SendMessage("DATA TODO",randomMember.Address)
-
+    
+    udp.SendMessage("sendingData",randomMember.Address)
+    
+    
+daemon.ReceiveDatagrams()
   }
-
+ 
   // Broadcast current group state to chosen machine
   // Increment heartbeat counters for all machines (zero own counter)
 }
