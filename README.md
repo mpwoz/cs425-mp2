@@ -4,7 +4,7 @@ cs425-mp2 Distributed gossiping protocol for failure detection
 Authors
 -------
 
-Karan Shah (kshah3)
+Karan Shah (khshah3)
 Martin Wozniewicz (wozniew1)
 
 
