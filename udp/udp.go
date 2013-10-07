@@ -66,7 +66,7 @@ func (self *Daemon) addNewMember(address string) (newMember *data.GroupMember){
 func SendMessage(message, address string) (err error) {
   var udpaddr *net.UDPAddr
   if udpaddr, err = net.ResolveUDPAddr("udp4", address); err != nil {
-    return
+    log.Panic(err)
   }
 
   var conn *net.UDPConn

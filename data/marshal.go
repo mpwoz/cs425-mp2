@@ -1,9 +1,9 @@
 package data
 
 import (
-    "bytes"
-    "encoding/binary"
-    "fmt"
+    //"bytes"
+    //"encoding/binary"
+    //"fmt"
 )
 
 /*
@@ -20,6 +20,7 @@ type MyMarshal struct {
 }
 
 // Serialize a GroupMember for transmission over UDP
+/*<<<<<<< HEAD
 func Marshal(member *GroupMember) (serialized []byte) {
   
   var Id [40]byte
@@ -108,4 +109,14 @@ func UnMarshal(serialized []byte) (member *GroupMember) {
     fmt.Println(Heartbeat)
     member = NewGroupMember(machineId, address, int(Heartbeat))
     return
+=======*/
+func Marshal(member *GroupMember) (serialized string) {
+  serialized = "TODO, this should be a groupMember's heartbeats"
+  return
+}
+
+// Deserialize a transmitted GroupMember
+func Unmarshal(serialized string) (member *GroupMember) {
+  return
+
 }

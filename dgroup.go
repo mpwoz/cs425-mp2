@@ -7,28 +7,10 @@ import (
   "log"
   "time"
   "math/rand"
-  "fmt"
+  //"fmt"
 )
 
-//Get random member & Increment HeartBeat
-func getRandomMemberAndIncrementAll(groupList map[string]data.GroupMember)(data.GroupMember){
-    randomMemberIndex := rand.Int() % len(groupList)
-    fmt.Println(randomMemberIndex)
-    index := 0
-    var randomMember data.GroupMember
-    for _, currMember := range groupList {
-    
-      if(randomMemberIndex == index){
-            randomMember = currMember
-            fmt.Println("Random Member Found")
-        }
-      currMember.IncrementHeartBeat()
-      index++
-      
-    }
-    return randomMember
 
-}
 // Maintain dictionary of machines
 // Each entry counts number of "heartbeats" since we heard from that machine
 // If the number of heartbeats crosses a threshold, we know it is unresponsive
@@ -47,13 +29,10 @@ func main() {
 
   log.Println("Start server on:", udpHost)
 
-  groupList := make(map[string]data.GroupMember)
-  
-  newMember := data.NewGroupMember("KEY", "VALUE", 3);
-  groupList["KEY"] = *newMember
-  
+  groupList := make(map[string]*data.GroupMember)
+
   // Determine the heartbeat duration time
-  duration := 5
+  heartbeatInterval := 100 * time.Millisecond
 
   /* 
     use this to test (from command line for now):
@@ -65,40 +44,74 @@ func main() {
   }
 
   // Join the group by broadcasting a dummy message
+  // TODO what if the packet got dropped? rebroadcast after a timeout
   if groupMember != "" {
     udp.SendMessage("JOIN", groupMember)
     log.Println("GOSSIP","Gossiping new member to the group") // TODO use mp1 logger
   }
-    
 
-  // LOOP for every heartbeat:
-  //Should probably do this asynchronously - Duration set ticker
-  
-  ticker := time.Tick(time.Duration(duration) * time.Second)
-  
-//TODO: Figure out how to move list to Daemon and use the ticker and listen to UDP in parallel
-  for now := range ticker {
-  
+  go daemon.ReceiveDatagrams()
+
+  //TODO: Figure out how to move list to Daemon and use the ticker and listen to UDP in parallel
+  for {
     //Get random member , increment current members
-    randomMember := getRandomMemberAndIncrementAll(groupList)
-    log.Println("TICK",now)
-    
-    sendingData := data.Marshal(&randomMember)
-    fmt.Println(sendingData)
-    checkMember := data.UnMarshal(sendingData)
-    
-    fmt.Println(checkMember)
-    //TODO Send Marshalled data
-    
-    udp.SendMessage("sendingData",randomMember.Address)
-    
-    
-daemon.ReceiveDatagrams()
+    heartbeatAndGossip(groupList)
+    log.Println("TICK", time.Now())
+    time.Sleep(heartbeatInterval)
   }
- 
-  // Broadcast current group state to chosen machine
-  // Increment heartbeat counters for all machines (zero own counter)
 }
 
 
+// Get two random numbers that aren't the same
+// TODO there's probably a better (quicker) way to do this 
+func distinctRandoms(max int) (a, b int) {
+  a = rand.Int() % max
+  for b = a; b == a; {
+    b = rand.Int() % max
+  }
+  return
+}
+
+// Send a packet about subject to receiver over UDP. If subject is nil, send a dummy message
+func gossip(subject, receiver *data.GroupMember) {
+  // The message we are sending over UDP
+  msg := "GOSSIP"
+  defer udp.SendMessage(msg, receiver.Address)
+
+  // Determine if there is a subject or not, convert to string if so
+  if subject == nil {
+    return
+  }
+  msg = data.Marshal(subject)
+}
+
+
+// Increment all heartbeat values in the member list
+// also send a random member A's information to a random member B
+func heartbeatAndGossip(groupList map[string]*data.GroupMember) {
+  // Nobody in the list yet
+  if len(groupList) < 1 {
+    return
+  }
+
+  // There is only one other machine, send them a dummy message
+  if len(groupList) == 1 {
+    // is this the only way to get the first element of a map?
+    for _, receiver := range groupList {
+      gossip(nil, receiver)
+    }
+    return
+  }
+
+  subjectIndex, receiverIndex := distinctRandoms(len(groupList))
+  var subject, receiver *data.GroupMember
+  i := 0
+  for _, currMember := range groupList {
+    if subjectIndex == i { subject = currMember }
+    if receiverIndex == i { receiver = currMember }
+    currMember.IncrementHeartBeat()
+    i++
+  }
+  gossip(subject, receiver)
+}
 
