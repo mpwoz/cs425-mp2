@@ -25,21 +25,22 @@ type Daemon struct {
   Conn *net.UDPConn
   Port string
   MemberList map[string]*data.GroupMember
+  InactiveList map[string]int
   Active bool
 }
 
 func NewDaemon(port string) (daemon *Daemon, err error) {
- 
+
  name, err := os.Hostname()
      if err != nil {
                  fmt.Printf("Oops: %v\n", err)
                  return
-             }  
+             }
     addrs, err := net.LookupHost(name)
     if err != nil {
-                 fmt.Printf("Oops: %v\n", err)
-                 return
-                }
+     fmt.Printf("Oops: %v\n", err)
+     return
+    }
 
   hostPort := net.JoinHostPort(addrs[0], port)
   log.Printf("Creating daemon at %s\n", hostPort)
@@ -54,6 +55,7 @@ func NewDaemon(port string) (daemon *Daemon, err error) {
     Conn: conn,
     Port: port,
     MemberList: make(map[string]*data.GroupMember),
+    InactiveList: make(map[string]int),
     Active : true,
   }
 
@@ -100,8 +102,11 @@ func (self *Daemon) handleMessage(msg, sender string, joinSenderGroup *bool) {
         self.JoinGroup(sender)
       }
     case "GOSSIP":
-      logger.Log("GOSSIP","Gossiping " + sender + fields[1])  
+      logger.Log("GOSSIP","Gossiping " + sender + fields[1])
       self.handleGossip(sender, fields[1])
+    case "QUIT":
+      logger.Log("QUIT", "Member just quit: " + sender)
+      self.removeMember(sender)
   }
 }
 
@@ -113,7 +118,7 @@ func (self *Daemon) handleGossip(senderAddr, subject string) {
       //log.Printf("Reset %s, %s\n", id, senderAddr)
       member.SetHeartBeat(0)
     }
-    logger.Log("GOSSIP","Reset counter for " + senderAddr) 
+    logger.Log("GOSSIP","Reset counter for " + senderAddr)
   }
 
   // Update the counter for the subject
@@ -124,7 +129,9 @@ func (self *Daemon) handleGossip(senderAddr, subject string) {
 
   curr := self.MemberList[subjectMember.Id]
   if curr == nil {
-    self.MemberList[subjectMember.Id] = subjectMember
+    if self.InactiveList[subjectMember.Id] == 0 {
+      self.MemberList[subjectMember.Id] = subjectMember
+    }
   } else {
     if curr.Heartbeat > subjectMember.Heartbeat {
       curr.SetHeartBeat(subjectMember.Heartbeat)
@@ -143,8 +150,28 @@ func (self *Daemon) addNewMember(address string) (newMember *data.GroupMember){
   return
 }
 
+func (self *Daemon) removeMember(address string) {
+  var keyToDelete string
+  for key, _ := range self.MemberList {
+    if strings.Contains(key, address) {
+      keyToDelete = key
+      break
+    }
+  }
+  self.InactiveList[keyToDelete] = 1
+  delete(self.MemberList, keyToDelete)
+  log.Printf("Deleted member with IP: %s", address)
+  logger.Log("DELETE","Deleted member with IP " + address)
+}
+
 func (self *Daemon) JoinGroup(address string) (err error) {
   return self.sendMessageWithPort("JOIN", address)
+}
+
+func (self *Daemon) LeaveGroup() {
+  for _,member := range self.MemberList {
+    self.sendMessageWithPort("QUIT", member.Address)
+  }
 }
 
 func (self *Daemon) Gossip(subject,receiver *data.GroupMember) (err error) {
@@ -161,7 +188,6 @@ func (self *Daemon) sendMessageWithPort(msg, address string) (err error) {
 
 // Increment all heartbeat values, and gossip a random machine A to another random B
 func (self *Daemon) HeartbeatAndGossip() {
-  
   if(self.Active == false){
     return
   }
@@ -196,16 +222,15 @@ func (self *Daemon) HeartbeatAndGossip() {
     self.Gossip(subject, receiver)
   }
   for _,member := range deleteMembers{
+        self.InactiveList[member] = 1
         delete(self.MemberList,member)
     }
 }
 
 func (self *Daemon) CheckStandardInput (){
     var input string
-    input = " "
-    for{        
+    for {
         fmt.Scanln(&input);
-        
         if(input == "leave"){
             self.Active = false
         }
