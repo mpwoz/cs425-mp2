@@ -42,7 +42,7 @@ func (logs *Logger) FileLog(key string , value string)(int64){
 }
 
 func Log(key string , value string)(int64){
-    file, err := os.OpenFile("applications.log", os.O_APPEND | os.O_CREATE | os.O_RDWR, 0666)
+    file, err := os.OpenFile("logs/applications.log", os.O_APPEND | os.O_CREATE | os.O_RDWR, 0666)
     defer file.Close()
     if err != nil {
         log.Fatal(err)

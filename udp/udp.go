@@ -13,6 +13,7 @@ import (
   "strings"
   "time"
   "../logger"
+  "fmt"
 )
 const (
   heartbeatThreshold = 50
@@ -23,6 +24,7 @@ type Daemon struct {
   Conn *net.UDPConn
   Port string
   MemberList map[string]*data.GroupMember
+  Active bool
 }
 
 func NewDaemon(port string) (daemon *Daemon, err error) {
@@ -39,6 +41,7 @@ func NewDaemon(port string) (daemon *Daemon, err error) {
     Conn: conn,
     Port: port,
     MemberList: make(map[string]*data.GroupMember),
+    Active : true,
   }
 
   log.Println("Daemon created!")
@@ -47,6 +50,9 @@ func NewDaemon(port string) (daemon *Daemon, err error) {
 }
 
 func (self *Daemon) ReceiveDatagrams(joinGroupOnConnection bool) {
+  if(self.Active == false) {
+    return
+    }
   for {
     buffer := make([]byte, 1024)
     c, addr, err := self.Conn.ReadFromUDP(buffer)
@@ -142,6 +148,10 @@ func (self *Daemon) sendMessageWithPort(msg, address string) (err error) {
 
 // Increment all heartbeat values, and gossip a random machine A to another random B
 func (self *Daemon) HeartbeatAndGossip() {
+  
+  if(self.Active == false){
+    return
+  }
   // Nobody in the list yet
   if len(self.MemberList) < 1 {
     return
@@ -150,22 +160,45 @@ func (self *Daemon) HeartbeatAndGossip() {
   receiverIndex := rand.Int() % len(self.MemberList)
   var receiver *data.GroupMember
   i := 0
-  for _, currMember := range self.MemberList {
+  j := 0
+  deleteMembers := make([]string , len(self.MemberList))
+  var BeforeList string
+  for key, currMember := range self.MemberList {
     if receiverIndex == i { receiver = currMember }
     currMember.IncrementHeartBeat()
     if currMember.Heartbeat > heartbeatThreshold {
       log.Println("MACHINE DEAD!", currMember.Id)
+      logger.Log("EXIT","Machine left the group " + currMember.Id)
+      deleteMembers[j] = key
+      j++
     }
+    BeforeList += key + " , "
     i++
   }
+  logger.Log("LISTSTAT",BeforeList)
   for _, subject := range self.MemberList {
     if subject.Id == receiver.Id {
       self.Gossip(nil, receiver)
     }
     self.Gossip(subject, receiver)
   }
+  for _,member := range deleteMembers{
+        delete(self.MemberList,member)
+    }
 }
 
+func (self *Daemon) CheckStandardInput (){
+    var input string
+    input = " "
+    for{        
+        fmt.Scanln(&input);
+        
+        if(input == "leave"){
+            self.Active = false
+        }
+    }
+
+}
 
 // Get two random numbers that aren't the same
 // TODO there's probably a better (quicker) way to do this 

@@ -51,6 +51,8 @@ func main() {
 
   go daemon.ReceiveDatagrams(firstInGroup)
 
+  go daemon.CheckStandardInput()
+  
   for {
     //Get random member , increment current members
     daemon.HeartbeatAndGossip()
