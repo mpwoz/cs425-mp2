@@ -13,6 +13,7 @@ import (
   "strings"
   "time"
   "../logger"
+  "os"
   "fmt"
 )
 const (
@@ -28,7 +29,19 @@ type Daemon struct {
 }
 
 func NewDaemon(port string) (daemon *Daemon, err error) {
-  hostPort := net.JoinHostPort("localhost", port)
+ 
+ name, err := os.Hostname()
+     if err != nil {
+                 fmt.Printf("Oops: %v\n", err)
+                 return
+             }  
+    addrs, err := net.LookupHost(name)
+    if err != nil {
+                 fmt.Printf("Oops: %v\n", err)
+                 return
+                }
+
+  hostPort := net.JoinHostPort(addrs[0], port)
   log.Printf("Creating daemon at %s\n", hostPort)
   logger.Log("INFO","Creating daemon at" + hostPort)
   conn, err := createUDPListener(hostPort)

@@ -1,7 +1,7 @@
 all: client
 
 client:
-	go build dgroup.go
+	/home/khshah3/go/bin/go build dgroup.go
 
 clean:
 	rm dgroup
