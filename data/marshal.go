@@ -17,11 +17,12 @@ type MyMarshal struct {
 }
 
 // Serialize a GroupMember for transmission over UDP
-func (self *MyMarshal) Marshal(member *GroupMember) (serialized []byte) {
+func Marshal(member *GroupMember) (serialized string) {
+  serialized = "TODO, this should be a groupMember's heartbeats"
   return
 }
 
 // Deserialize a transmitted GroupMember
-func (self *MyMarshal) Unmarshal(serialized []byte) (member *GroupMember) {
+func Unmarshal(serialized string) (member *GroupMember) {
   return
 }
