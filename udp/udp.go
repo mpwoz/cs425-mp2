@@ -17,7 +17,7 @@ import (
   "fmt"
 )
 const (
-  heartbeatThreshold = 50
+  heartbeatThreshold = 25
 )
 
 
@@ -188,7 +188,7 @@ func (self *Daemon) HeartbeatAndGossip() {
     BeforeList += key + " , "
     i++
   }
-  logger.Log("LISTSTAT",BeforeList)
+ logger.Log("LISTSTAT",BeforeList)
   for _, subject := range self.MemberList {
     if subject.Id == receiver.Id {
       self.Gossip(nil, receiver)

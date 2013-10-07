@@ -30,7 +30,7 @@ func main() {
   logger.Log("INFO","Start Server on Port" + listenPort)
 
   // Determine the heartbeat duration time
-  heartbeatInterval := 20 * time.Millisecond
+  heartbeatInterval := 110 * time.Millisecond
 
   /* 
     use this to test (from command line for now):
@@ -51,7 +51,7 @@ func main() {
 
   go daemon.ReceiveDatagrams(firstInGroup)
 
-  go daemon.CheckStandardInput()
+  //go daemon.CheckStandardInput()
   
   for {
     //Get random member , increment current members
