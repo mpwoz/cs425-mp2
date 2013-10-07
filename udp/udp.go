@@ -56,6 +56,8 @@ func (self *Daemon) ReceiveDatagrams(joinGroupOnConnection bool) {
       return
     }
 
+    //log.Printf("Bytes received: %d\n", c)
+
     portmsg := strings.SplitN(string(buffer[:c]), "<PORT>", 2)
     port, msg := portmsg[0], portmsg[1]
     senderAddr := net.JoinHostPort(addr.IP.String(), port)
