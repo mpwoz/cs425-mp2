@@ -22,8 +22,8 @@ func Marshal(member *GroupMember) (serialized string) {
     return "NIL"
   }
 
-  serialized = fmt.Sprintf("%s%s%s", member.Id, delim, member.Heartbeat)
-  //log.Println("Serialized member: %s", serialized)
+  serialized = fmt.Sprintf("%s%s%d", member.Id, delim, member.Heartbeat)
+  //log.Printf("<%s, %d> ---> %s", member.Id, member.Heartbeat, serialized)
   return
 }
 

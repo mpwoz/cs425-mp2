@@ -78,6 +78,7 @@ func (self *Daemon) handleGossip(senderAddr, subject string) {
   // TODO add sender if it doesn't exist yet
   for id,member := range self.MemberList {
     if strings.Contains(id, senderAddr) {
+      //log.Printf("Reset %s, %s\n", id, senderAddr)
       member.SetHeartBeat(0)
     }
   }
@@ -93,7 +94,7 @@ func (self *Daemon) handleGossip(senderAddr, subject string) {
     self.MemberList[subjectMember.Id] = subjectMember
   } else {
     if curr.Heartbeat > subjectMember.Heartbeat {
-      curr.Heartbeat = subjectMember.Heartbeat
+      curr.SetHeartBeat(subjectMember.Heartbeat)
     }
   }
 
@@ -133,8 +134,10 @@ func (self *Daemon) HeartbeatAndGossip() {
 
   // There is only one other machine, send them a dummy message
   if len(self.MemberList) == 1 {
+    log.Println("Only one other machine!")
     // is this the only way to get the first element of a map?
     for _, receiver := range self.MemberList {
+      receiver.IncrementHeartBeat()
       self.Gossip(nil, receiver)
     }
     return
