@@ -75,9 +75,7 @@ at a high level.
 Integration with MP1
 --------------------
 
-MP1 wasn't very useful in debugging this MP, since we needed to be able to see
-log messages in real-time (to see the order in which packets were sent/arrived
-at other machines). Instead of using mp1, we used the built in logging 
-functions of Go, and set up parameters for testing locally instead of in a 
-truly distributed environment. This allowed us to view logs for all "nodes" on a
-single screen in real-time. 
+We debugged using the logger from MP1 and parameters which allowed us to 
+simulate multiple nodes on a single machine, locally. This allowed us 
+to see all the outputs at once, in real time without having to resort
+to the grep functionality from mp1.
